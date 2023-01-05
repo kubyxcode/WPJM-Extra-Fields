@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name: WPJM Extra Fields
- * Plugin URI: https://tilcode.blog/wpjm-extra-fields-adds-extra-fields-to-wp-job-manager-job-listings
- * Description: Adds an extra Salary and Important Information fields to WP Job Manager job listings
- * Version: 1.3.0
- * Author: Gabriel Maldonado
+ * Plugin Name: WPJM Extra Fields - Kubyx code edition
+ * Plugin URI: n/a
+ * Description: Adds extra fields to WP Job Manager job listings
+ * Version: 1.0.0
+ * Author: Kubyxcode (initial code by Gabriel Maldonado)
  * Author URI: http://tilcode.blog/
  * Text Domain: wpjm-extra-fields
  *
@@ -34,11 +34,12 @@ add_filter( 'manage_edit-job_listing_columns', 'gma_wpjmef_retrieve_salary_colum
 add_filter( 'manage_job_listing_posts_custom_column', 'gma_wpjmef_display_salary_column' );
 
 /**
-* Sets the job_salary metadata as a new $column that can be used in the back-end
+* Sets the job_salary, job_rate metadata as a new $column that can be used in the back-end
 **/
 function gma_wpjmef_retrieve_salary_column($columns){
 
   $columns['job_salary']         = __( 'Salary', 'wpjm-extra-fields' );
+  $columns['job_rate']         = __( 'Employment Rate', 'wpjm-extra-fields' );
   return $columns;
 
 };
@@ -62,6 +63,16 @@ function gma_wpjmef_display_salary_column($column){
         echo '-';
       
       }
+    case 'job_rate':
+    
+      $rate = get_post_meta( $post->ID, '_job_rate', true );
+      
+      if ( !empty($rate)) {
+        echo $rate;
+      } else {
+        echo '-';
+      
+      }
     break;
   }
 
@@ -81,23 +92,6 @@ function gma_wpjmef_add_support_link_to_plugin_page( $links ){
     return $links;
 }
 
-/**
-* Adds a new optional "Salary" text field at the "Submit a Job" form, generated via the [submit_job_form] shortcode
-**/
-function gma_wpjmef_frontend_add_salary_field( $fields ) {
-  
-  $fields['job']['job_salary'] = array(
-    'label'       => __( 'Salary', 'wpjm-extra-fields' ),
-    'type'        => 'text',
-    'required'    => false,
-    'placeholder' => 'e.g. USD$ 20.000',
-    'description' => '',
-    'priority'    => 7,
-  );
-
-  return $fields;
-
-}
 
 /**
 * Adds a new optional "Important Information" text field at the "Submit a Job" form, generated via the [submit_job_form] shortcode
@@ -134,6 +128,22 @@ function gma_wpjmef_admin_add_salary_field( $fields ) {
 }
 
 /**
+* Adds a text field to the Job Listing wp-admin meta box named "Employment rate"
+**/
+function gma_wpjmef_admin_add_rate_field( $fields ) {
+  
+  $fields['_job_rate'] = array(
+    'label'       => __( 'Employment rate', 'wpjm-extra-fields' ),
+    'type'        => 'text',
+    'placeholder' => 'e.g. 50%',
+    'description' => ''
+  );
+
+  return $fields;
+
+}
+
+/**
 * Adds a text field to the Job Listing wp-admin meta box named "Important Information"
 **/
 function gma_wpjmef_admin_add_important_info_field( $fields ) {
@@ -158,6 +168,7 @@ function gma_wpjmef_display_job_salary_data() {
 
   $salary = get_post_meta( $post->ID, '_job_salary', true );
   $important_info = get_post_meta( $post->ID, '_job_important_info', true );
+  $rate = get_post_meta( $post->ID, '_job_rate', true );
 
   if ( $salary ) {
     echo '<li class="wpjmef-field-salary">' . __( 'Salary: ' ) . esc_html( $salary ) . '</li>';
